@@ -11,25 +11,168 @@
          padding: 5% 0; 
       } 
    </style>
+
+<style>
+   body {font-family: Arial, Helvetica, sans-serif;}
+   * {box-sizing: border-box;}
+   
+   /* Button used to open the chat form - fixed at the bottom of the page */
+   .open-button {
+     background-color: #555;
+     color: white;
+     padding: 16px 20px;
+     border: none;
+     cursor: pointer;
+     opacity: 0.8;
+     position: fixed;
+     bottom: 23px;
+     /* right: 28px; */
+     left: 15px;
+     width: 280px;
+     display: none;
+   }
+
+   .open-button-users {
+     background-color: #555;
+     color: white;
+     padding: 16px 20px;
+     border: none;
+     cursor: pointer;
+     opacity: 0.8;
+     position: fixed;
+     bottom: 23px;
+     right: 28px;
+     /* left: 15px; */
+     width: 280px;
+     display: none;
+   }
+   
+   /* The popup chat - hidden by default */
+   .chat-popup {
+     display: none;
+     position: fixed;
+     bottom: 0;
+     /* right: 15px; */
+     left: 0;
+     border: 3px solid #f1f1f1;
+     z-index: 9;
+   }
+
+   .listUsers-popup {
+     display: none;
+     position: fixed;
+     bottom: 0;
+     right: 15px;
+     /* left: 0; */
+     border: 3px solid #f1f1f1;
+     z-index: 9;
+   }
+   
+   /* Add styles to the form container */
+   .form-container{
+     max-width: 300px;
+     padding: 10px;
+     background-color: white;
+   }
+
+   .form-container-users {
+     width: 300px;
+     padding: 10px;
+     background-color: white;
+     min-height: 400px;
+   }
+   
+   /* Full-width textarea */
+   .form-container textarea {
+     width: 100%;
+     padding: 15px;
+     margin: 5px 0 22px 0;
+     border: none;
+     background: #f1f1f1;
+     resize: none;
+     /* min-height: 200px; */
+   }
+
+   .areaMensajes
+   {
+     width: 100%;
+     padding: 15px;
+     margin: 5px 0 22px 0;
+     border: none;
+     background: #f1f1f1;
+     resize: none;
+     min-height: 200px;
+     height: 200px;
+     max-height: 200px;
+     overflow-y: scroll;
+     overflow-x:hidden;
+   }
+   
+   /* When the textarea gets focus, do something */
+   .form-container textarea:focus {
+     background-color: #ddd;
+     outline: none;
+   }
+   
+   /* Set a style for the submit/send button */
+   .form-container .btn {
+     background-color: #4CAF50;
+     color: white;
+     padding: 10px 20px;
+     border: none;
+     cursor: pointer;
+     width: 100%;
+     margin-bottom:10px;
+     opacity: 0.8;
+   }
+
+   .form-container-users .btn {
+     color: white;
+     padding: 20px;
+     border: none;
+     cursor: pointer;
+     width: 20px;
+     height: 20px;
+     opacity: 0.8;
+     float: right;
+     border-radius: 50%;
+     text-align: center;
+   }
+   
+   /* Add a red background color to the cancel button */
+   .form-container .cancel, .form-container-users .cancel {
+     background-color: red;
+   }
+   
+   /* Add some hover effects to buttons */
+   .form-container .btn:hover, .open-button:hover {
+     opacity: 1;
+   }
+
+   tr.btn
+   {
+      margin-bottom:0px;
+   }
+   </style>
 	
    <body> 
       <div id = "loginPage" class = "container text-center"> 
 		
          <div class = "row"> 
             <div class = "col-md-4 col-md-offset-4"> 
-               <h2>WebRTC Text Demo. Please sign in</h2> 
+               <h2>Demo de WebRTC.</h2> 
                <label for = "usernameInput" class = "sr-only">Login</label> 
                <input type = "email" id = "usernameInput" 
                   class = "form-control formgroup" placeholder = "Login" 
                   required = "" autofocus = "">
                <button id = "loginBtn" class = "btn btn-lg btn-primary btnblock">
-                  Sign in</button> 
+                  Ingresar</button> 
             </div> 
          </div> 
 			
       </div>
 		
-      <div id = "callPage" class = "call-page container">
+      <!-- <div id = "callPage" class = "call-page container">
 		
          <div class = "row"> 
             <div class = "col-md-4 col-md-offset-4 text-center"> 
@@ -38,27 +181,71 @@
                   <div id = "chatarea" class = "panel-body text-left"></div> 
                </div> 
             </div> 
-         </div>
+         </div> -->
 			
-         <div class = "row text-center form-group"> 
+         <!-- <div class = "row text-center form-group"> 
             <div class = "col-md-12"> 
                <input id = "callToUsernameInput" type = "text" 
                   placeholder = "username to call" /> 
                <button id = "callBtn" class = "btn-success btn">Call</button> 
                <button id = "hangUpBtn" class = "btn-danger btn">Hang Up</button> 
             </div> 
-         </div> 
+         </div>  -->
 			
-         <div class = "row text-center"> 
+         <!-- <div class = "row text-center"> 
             <div class = "col-md-12"> 
                <input id = "msgInput" type = "text" placeholder = "message" /> 
                <button id = "sendMsgBtn" class = "btn-success btn">Send</button> 
             </div> 
          </div>
-			
-      </div> 
+		
+      </div>  -->
+
+
+      <button class="open-button" id="open-chat" onclick="openForm()">Chat</button>
+
+      <div class="chat-popup" id="myForm">
+         <form action="/action_page.php" class="form-container">
+            <table style="width: 100%; height: 30px;">
+               <tbody style="height: 30px;">
+                  <tr style="height: 30px;">
+                     <td><button  class="btn" style="margin-bottom: 0px;">Llamar</button></td>
+                     <td><button id = "hangUpBtn" class="btn" style="background-color: red; margin-bottom: 0px;">Colgar</button></td>
+                  </tr>
+               </tbody>
+            </table>
+
+            <h1 id="nombrechat">Chat</h1>
+            <div id="areaMensajes" class="areaMensajes"></div>
+            <label for="msg"><b>Message</b></label>
+            <textarea id = "msgInput" placeholder="Type message.." name="msg"></textarea>
+            <button id = "sendMsgBtn" type="button" class="btn">Enviar</button>
+            <button type="button" class="btn cancel" onclick="closeForm()">Cerrar</button>
+         </form>
+      </div>
+
+
+      <!-- Lista de usuarios conectados -->
+
+      <button class="open-button-users" id="open-ListUsuarios" onclick="openFormUsers()">Usuarios</button>
+
+      <div class="listUsers-popup" id="myFormUsers">
+      <form action="/action_page.php" class="form-container-users">
+         <button type="button" class="btn cancel" onclick="closeFormUsers()"> X </button>
+         <h1>Usuarios</h1> 
+
+         <div id="wrapper" style="background-color: whitesmoke; height: 300px; width: 100%;">
+
+         </div>
+      </form>
+      </div>
+
+      <script>
+      
+      </script>
 		
       <script src = "client.js"></script> 
+      <!-- <script src = "textchat/JS/Index.js"></script>  -->
 		
    </body>
  

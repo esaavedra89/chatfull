@@ -57,7 +57,7 @@ wss.on("connection", ws => {
             sendTo(ws, {
                 type: "login",
                 success: false,
-                message: "Username is unavailable"
+                message: "Nombre de usuario no disponible"
             });
             } else {
             const id = uuidv4();
@@ -89,7 +89,7 @@ wss.on("connection", ws => {
                 } else {
                     sendTo(ws, {
                     type: "error",
-                    message: `User ${name} does not exist!`
+                    message: `No existe el nombre de usuario: ${name}!`
                     });
                 }
                 break;
@@ -105,7 +105,7 @@ wss.on("connection", ws => {
                 } else {
                     sendTo(ws, {
                     type: "error",
-                    message: `User ${name} does not exist!`
+                    message: `No existe el nombre de usuario: ${name}!`
                     });
                 }
                 break;
@@ -121,7 +121,7 @@ wss.on("connection", ws => {
                 } else {
                     sendTo(ws, {
                     type: "error",
-                    message: `User ${name} does not exist!`
+                    message: `No existe el nombre de usuario: ${name}!`
                     });
                 }
                 break;
@@ -134,7 +134,7 @@ wss.on("connection", ws => {
                     
                     sendTo(ws, {
                         type: "error",
-                        message: "Command not found: " + type
+                        message: "Command no encontrado: " + type
                         });
                         break;
                     }
@@ -150,12 +150,12 @@ wss.on("connection", ws => {
     ws.send(
         JSON.stringify({
         type: "connect",
-        message: "Well hello there, I am a WebSocket server"
+        message: "Bienvenido, yo soy el servidor WebSocket"
         })
     );
 });
 
 //start our server
 server.listen(port, () => {
-  console.log(`Signalling Server running on port: ${port}`);
+  console.log(`Servidor Signalling corriendo en el puerto: ${port}`);
 });

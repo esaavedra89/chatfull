@@ -7,7 +7,7 @@ var connectedUser;
 var conn = new WebSocket('ws://localhost:9000');
   
 conn.onopen = function () { 
-   console.log("Connected to the signaling server"); 
+   console.log("Conectado al servidor signaling"); 
 }; 
  
 //when we got a message from a signaling server 
@@ -18,6 +18,8 @@ conn.onmessage = function (msg) {
    switch(data.type) { 
       case "login": 
          handleLogin(data.success); 
+
+         Listausuarios(data)
          break; 
       //when somebody wants to call us 
       case "offer": 
@@ -34,16 +36,17 @@ conn.onmessage = function (msg) {
          handleLeave(); 
          break; 
          case "updateUsers": 
-         var myObj, x;
-            myObj = data.user;
-            
-            //var myJSON = JSON.stringify(userJ);
-            for (x in myObj) {
-                if(x == "userName")
-                {
-                    alert( myObj[x]  + " se ha conectado");
-                }
-            }
+         //var myObj, x;
+         //myObj = data.user;
+         //var myJSON = JSON.stringify(userJ);
+         // for (x in myObj) {
+         //     if(x == "userName")
+         //     {
+         //         alert( myObj[x]  + " se ha conectado");
+         //     }
+         // }
+
+         Listausuarios(data);
          
          break; 
       default: 
@@ -70,10 +73,13 @@ function send(message) {
 //****** 
 
 var loginPage = document.querySelector('#loginPage'); 
+var openChat = document.querySelector('#open-chat'); 
+var openListUsuarios = document.querySelector('#open-ListUsuarios'); 
+
 var usernameInput = document.querySelector('#usernameInput'); 
 var loginBtn = document.querySelector('#loginBtn'); 
 
-var callPage = document.querySelector('#callPage'); 
+//var callPage = document.querySelector('#callPage'); 
 var callToUsernameInput = document.querySelector('#callToUsernameInput'); 
 var callBtn = document.querySelector('#callBtn'); 
 
@@ -81,10 +87,12 @@ var hangUpBtn = document.querySelector('#hangUpBtn');
 var msgInput = document.querySelector('#msgInput'); 
 var sendMsgBtn = document.querySelector('#sendMsgBtn'); 
 
-var chatArea = document.querySelector('#chatarea'); 
+// var chatArea = document.querySelector('#chatarea'); 
+var areaMensajes = document.querySelector('#areaMensajes'); 
+
 var yourConn; 
 var dataChannel;
-callPage.style.display = "none"; 
+//callPage.style.display = "none"; 
 
 // Login when the user clicks the button 
 loginBtn.addEventListener("click", function (event) { 
@@ -102,10 +110,12 @@ loginBtn.addEventListener("click", function (event) {
 function handleLogin(success) { 
 
    if (success === false) { 
-      alert("Ooops...try a different username"); 
+      alert("Ooops... intente con un diferente nombre de usuario"); 
    } else { 
       loginPage.style.display = "none"; 
-      callPage.style.display = "block"; 
+      //callPage.style.display = "block"; 
+      openChat.style.display = "block";
+      openListUsuarios.style.display = "block";
 		
       //********************** 
       //Starting a peer connection 
@@ -137,39 +147,39 @@ function handleLogin(success) {
         
         //when we receive a message from the other peer, display it on the screen 
         dataChannel.onmessage = function (event) { 
-            chatArea.innerHTML += connectedUser + ": " + event.data + "<br />"; 
+            // chatArea.innerHTML += connectedUser + ": " + event.data + "<br />"; 
+            areaMensajes.innerHTML += connectedUser + ": " + event.data + "<br />"; 
         };
         
         dataChannel.onclose = function () { 
-            console.log("data channel is closed"); 
-        };  
+            console.log("data channel está cerrado"); 
+        };
    } 
-	
 };
 
 //initiating a call
-callBtn.addEventListener("click", function () { 
-    var callToUsername = callToUsernameInput.value;
+// callBtn.addEventListener("click", function () { 
+//     var callToUsername = callToUsernameInput.value;
      
-    if (callToUsername.length > 0) {
+//     if (callToUsername.length > 0) {
      
-       connectedUser = callToUsername;
+//        connectedUser = callToUsername;
          
-       // create an offer 
-       yourConn.createOffer(function (offer) { 
+//        // create an offer 
+//        yourConn.createOffer(function (offer) { 
          
-          send({ 
-             type: "offer", 
-             offer: offer 
-          }); 
+//           send({ 
+//              type: "offer", 
+//              offer: offer 
+//           }); 
              
-          yourConn.setLocalDescription(offer); 
+//           yourConn.setLocalDescription(offer); 
              
-       }, function (error) { 
-          alert("Error when creating an offer"); 
-       });  
-    } 
- });
+//        }, function (error) { 
+//           alert("Error creando una oferta: " + message); 
+//        });  
+//     } 
+//  });
    
  //when somebody sends us an offer 
  function handleOffer(offer, name) { 
@@ -186,7 +196,7 @@ callBtn.addEventListener("click", function () {
        }); 
          
     }, function (error) { 
-       alert("Error when creating an answer"); 
+       alert("Error creando una respuesta"); 
     });
  };
    
@@ -218,9 +228,148 @@ hangUpBtn.addEventListener("click", function () {
  //when user clicks the "send message" button 
 sendMsgBtn.addEventListener("click", function (event) { 
     var val = msgInput.value; 
-    chatArea.innerHTML += name + ": " + val + "<br />"; 
+   //  chatArea.innerHTML += name + ": " + val + "<br />"; 
+    areaMensajes.innerHTML += name + ": " + val + "<br />"; 
      
     //sending a message to a connected peer 
     dataChannel.send(val); 
     msgInput.value = ""; 
  });
+
+
+ //var cols = ['Name', 'Birthplace', 'Age'];
+
+ // Creamos el elemento tabla.
+var t = document.createElement('table');
+
+// Agregamos la clase.
+// t.classList.add('scooby-gang', 'listing');
+
+// // Agregamos el thead.
+// t.appendChild(document.createElement('thead'));
+
+
+// t.querySelector('thead').appendChild(document.createElement('tr'));
+
+// for (var i = 0; i < cols.lenght; i++) {
+//     // creamos una celda.
+//     var heading = document.createElement('td');
+//     // Seteamos contenido de la celda con el valor del arreglo.
+//     heading.textContent = cols[i];
+//     // Agregamos esa celda a la fila.
+//     t.querySelector('thead tr').appendChild(heading);
+// }
+
+
+// Agregamos la tabla al div.
+document.getElementById('wrapper').appendChild(t);
+
+ function Listausuarios(data)
+ {
+   var myObj;
+   
+   if(data.users == null)
+   {
+      // Individual.
+      var usuarioConectado = data.user;
+   }else
+   {
+      myObj = data.users;
+         // Create rows
+         // for (var i = 0; i < data.length; i++) {
+            for (var y = 0; y < myObj.length; y++) {
+               var s = myObj[y];
+               var r = document.createElement('tr');
+
+               r.dataset.personId = s.id;
+               r.id = s.userName.toLowerCase() + "-row";
+
+               var statusCell = document.createElement('td');
+               statusCell.textContent = 'Activo';
+               statusCell.classList.add('estado');
+               statusCell.dataset.personId = y;
+
+               var userName = document.createElement('td');
+               userName.textContent = s.userName;
+               userName.classList.add('userName');
+               userName.dataset.personId = s.id;
+
+               r.appendChild(statusCell);
+               r.appendChild(userName);
+
+               t.appendChild(r);
+         }
+     }
+
+   AddEventoListaUsuarios();  
+ }
+
+// Metodo que se crea a partir de hacer click a un usuario.
+ function AddEventoListaUsuarios()
+ {
+   var cells = document.querySelectorAll("td.userName");
+
+   for(var s = 0; s < cells.length; s++)
+   {
+      cells[s].addEventListener('click', action1);
+   }
+ }
+
+ // Crea conexión con el usuario seleccionado.
+ function action1(e) {
+   CallToUsername(e.target.textContent);
+   }
+
+// Crea conexión con el usuario seleccionado.
+function CallToUsername(name)
+{
+   //var callToUsername = callToUsernameInput.value;
+   var callToUsername = name;
+     
+    if (callToUsername.length > 0) {
+     
+       connectedUser = callToUsername;
+         
+       // create an offer 
+       yourConn.createOffer(function (offer) { 
+         
+          send({ 
+             type: "offer", 
+             offer: offer 
+          }); 
+             
+          yourConn.setLocalDescription(offer); 
+
+          // Abrimos chat.
+          openForm();
+
+          
+          var nombreChat = document.getElementById("nombrechat");
+          // Cambiamos nombre del chat.
+          nombreChat.innerHTML = callToUsername;
+             
+       }, function (error) { 
+          alert("Error creando una oferta: " + message); 
+       });  
+    } 
+}
+
+function openForm() {
+   document.getElementById("myForm").style.display = "block";
+   }
+
+   function openFormUsers() {
+   document.getElementById("myFormUsers").style.display = "block";
+   }
+
+   function closeForm() {
+   document.getElementById("myForm").style.display = "none";
+   }
+
+   function closeFormUsers() {
+   document.getElementById("myFormUsers").style.display = "none";
+   }
+
+   /****************************************************Llamadas******************************************************** */
+
+   
