@@ -2,10 +2,7 @@
 var name; 
 var connectedUser;
  // Put variables in global scope to make them available to the browser console.
- const constraints = window.constraints = {
-    audio: false,
-    video: true,
-}; 
+ var constraints;
 //connecting to our signaling server
 var conn = new WebSocket('ws://localhost:9000');
   
@@ -101,7 +98,19 @@ function handleLogin(success) {
       //********************** 
       //Starting a peer connection 
       //********************** 
-		
+      
+      if (confirm('Desea agregar video a esta llamada?')) {
+         constraints = window.constraints = {
+            audio: true,
+            video: true,
+        }; 
+       }else
+       {
+         constraints = window.constraints = {
+            audio: true,
+            video: false,
+        }; 
+       }
 
       //getting local video stream 
       //const stream = await navigator.mediaDevices.getUserMedia(constraints);

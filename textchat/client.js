@@ -4,14 +4,36 @@ var name;
 var connectedUser;
 var yourConn;
  // Put variables in global scope to make them available to the browser console.
- const constraints = window.constraints = {
-   audio: false,
-   video: true,
-}; 
+ var constraints;
 //all connected to the server users
 let users = {};
 
+var yourConn; 
+var dataChannel;
+var stream;
+var myObj;
 
+var loginPage = document.querySelector('#loginPage'); 
+var usernameInput = document.querySelector('#usernameInput'); 
+var loginBtn = document.querySelector('#loginBtn'); 
+
+var openChat = document.querySelector('#open-chat'); 
+var openListUsuarios = document.querySelector('#open-ListUsuarios'); 
+
+var callPage = document.querySelector('#callPage'); 
+// var callToUsernameInput = document.querySelector('#callToUsernameInput'); 
+var callBtn = document.querySelector('#callBtn'); 
+
+var hangUpBtn = document.querySelector('#hangUpBtn'); 
+var msgInput = document.querySelector('#msgInput'); 
+// var sendMsgBtn = document.querySelector('#sendMsgBtn'); 
+
+// var chatArea = document.querySelector('#chatarea'); 
+var areaMensajes = document.querySelector('#areaMensajes'); 
+
+// Selectores de video.
+var localVideo = document.querySelector('#localVideo'); 
+var remoteVideo = document.querySelector('#remoteVideo');
 
 //connecting to our signaling server 
 var conn = new WebSocket('ws://localhost:9000');
@@ -22,7 +44,7 @@ conn.onopen = function () {
  
 //when we got a message from a signaling server 
 conn.onmessage = function (msg) { 
-   console.log("Got message", msg.data);
+   console.log("Mensaje recibido", msg.data);
 	
    var data = JSON.parse(msg.data);
    switch(data.type) { 
@@ -82,32 +104,6 @@ function send(message) {
 //UI selectors block
 //****** 
 
-var loginPage = document.querySelector('#loginPage'); 
-var usernameInput = document.querySelector('#usernameInput'); 
-var loginBtn = document.querySelector('#loginBtn'); 
-
-var openChat = document.querySelector('#open-chat'); 
-var openListUsuarios = document.querySelector('#open-ListUsuarios'); 
-
-var callPage = document.querySelector('#callPage'); 
-// var callToUsernameInput = document.querySelector('#callToUsernameInput'); 
-var callBtn = document.querySelector('#callBtn'); 
-
-var hangUpBtn = document.querySelector('#hangUpBtn'); 
-var msgInput = document.querySelector('#msgInput'); 
-var sendMsgBtn = document.querySelector('#sendMsgBtn'); 
-
-// var chatArea = document.querySelector('#chatarea'); 
-var areaMensajes = document.querySelector('#areaMensajes'); 
-
-// Selectores de video.
-var localVideo = document.querySelector('#localVideo'); 
-var remoteVideo = document.querySelector('#remoteVideo');
-
-var yourConn; 
-var dataChannel;
-var stream;
-
 //hide call page 
 callPage.style.display = "none"; 
 
@@ -123,9 +119,34 @@ loginBtn.addEventListener("click", function (event) {
    } 
 	
 });
-
-
  
+
+//hang up 
+hangUpBtn.addEventListener("click", function () { 
+   send({ 
+      type: "leave" 
+   }); 
+  
+   console.log("Enviando mensaje leave"); 
+
+   handleLeave(); 
+}); 
+
+msgInput.addEventListener("keydown", function(event)
+{
+   if(event.keyCode==13)
+   {
+      var val = msgInput.value; 
+      //  chatArea.innerHTML += name + ": " + val + "<br />"; 
+       areaMensajes.innerHTML += name + ": " + val + "<br />"; 
+        
+       //sending a message to a connected peer 
+       dataChannel.send(val); 
+       msgInput.value = ""; 
+   } 
+});
+
+
 function handleLogin(success) { 
 
    if (success === false) { 
@@ -139,7 +160,18 @@ function handleLogin(success) {
       //********************** 
       //Starting a peer connection 
       //********************** 
-
+      if (confirm('Desea agregar video a esta llamada?')) {
+         constraints = window.constraints = {
+            audio: true,
+            video: true,
+        }; 
+       }else
+       {
+         constraints = window.constraints = {
+            audio: true,
+            video: false,
+        }; 
+       }
       /****************************Del video************************************ */
       //getting local video stream 
       navigator.webkitGetUserMedia(constraints, 
@@ -183,8 +215,12 @@ function handleLogin(success) {
         //creating data channel 
         dataChannel = yourConn.createDataChannel("channel1", {reliable:true}); 
         
+        dataChannel.onopen = () => {
+         console.log("DataChannel está abierto");
+       }
+
         dataChannel.onerror = function (error) { 
-            console.log("Ooops...error:", error); 
+            console.log("Ooops...error al interntar abrir DataChannel:", error); 
         };
         
         //when we receive a message from the other peer, display it on the screen 
@@ -194,7 +230,7 @@ function handleLogin(success) {
         };
         
         dataChannel.onclose = function () { 
-            console.log("data channel está cerrado"); 
+            console.log("DataChannel está cerrado"); 
         };
       }, function (error) { 
          console.log(error); 
@@ -202,67 +238,51 @@ function handleLogin(success) {
    };
 }
 
-//initiating a call
-// callBtn.addEventListener("click", function () { 
-//     var callToUsername = callToUsernameInput.value;
-     
-//     if (callToUsername.length > 0) {
-     
-//        connectedUser = callToUsername;
-         
-//        // create an offer 
-//        yourConn.createOffer(function (offer) { 
-         
-//           send({ 
-//              type: "offer", 
-//              offer: offer 
-//           }); 
-             
-//           yourConn.setLocalDescription(offer); 
-             
-//        }, function (error) { 
-//           alert("Error creando una oferta: " + message); 
-//        });  
-//     } 
-//  });
-   
  //when somebody sends us an offer 
  function handleOffer(offer, name) { 
+
+   console.log("Recibiendo oferta"); 
+
     connectedUser = name; 
+
     yourConn.setRemoteDescription(new RTCSessionDescription(offer));
-     
+
+    var nombreChat = document.getElementById("nombrechat");
+    
+    // Cambiamos nombre del chat.
+    nombreChat.innerHTML = name;
+
     //create an answer to an offer 
     yourConn.createAnswer(function (answer) { 
-       yourConn.setLocalDescription(answer); 
-         
-       send({ 
-          type: "answer", 
-          answer: answer 
-       }); 
-         
+    yourConn.setLocalDescription(answer); 
+       
+    console.log("Creando respuesta para oferta"); 
+
+    send({ 
+       type: "answer", 
+       answer: answer 
+      }); 
+      
+   console.log("Respuesta enviada"); 
+
+   // Abrimos chat.
+   openForm();
+
     }, function (error) { 
-       alert("Error creando una respuesta"); 
+       alert("Error creando una respuesta: " + error.message); 
     });
  };
    
  //when we got an answer from a remote user 
  function handleAnswer(answer) { 
     yourConn.setRemoteDescription(new RTCSessionDescription(answer)); 
+    console.log("Recibiendo respuesta"); 
  };
    
  //when we got an ice candidate from a remote user 
  function handleCandidate(candidate) { 
     yourConn.addIceCandidate(new RTCIceCandidate(candidate)); 
  };
-
- //hang up 
-hangUpBtn.addEventListener("click", function () { 
-    send({ 
-       type: "leave" 
-    }); 
-     
-    handleLeave(); 
- }); 
   
  function handleLeave() { 
     connectedUser = null; 
@@ -271,47 +291,15 @@ hangUpBtn.addEventListener("click", function () {
 
     remoteVideo.src = null; 
     yourConn.onaddstream = null; 
+    console.log("Dejando conversación"); 
  };
-
- //when user clicks the "send message" button 
-sendMsgBtn.addEventListener("click", function (event) { 
-    var val = msgInput.value; 
-   //  chatArea.innerHTML += name + ": " + val + "<br />"; 
-    areaMensajes.innerHTML += name + ": " + val + "<br />"; 
-     
-    //sending a message to a connected peer 
-    dataChannel.send(val); 
-    msgInput.value = ""; 
- });
-
-
- //var cols = ['Name', 'Birthplace', 'Age'];
 
  // Creamos el elemento tabla.
 var t = document.createElement('table');
 
-// Agregamos la clase.
-// t.classList.add('scooby-gang', 'listing');
-
-// // Agregamos el thead.
-// t.appendChild(document.createElement('thead'));
-
-
-// t.querySelector('thead').appendChild(document.createElement('tr'));
-
-// for (var i = 0; i < cols.lenght; i++) {
-//     // creamos una celda.
-//     var heading = document.createElement('td');
-//     // Seteamos contenido de la celda con el valor del arreglo.
-//     heading.textContent = cols[i];
-//     // Agregamos esa celda a la fila.
-//     t.querySelector('thead tr').appendChild(heading);
-// }
-
-
 // Agregamos la tabla al div.
 document.getElementById('wrapper').appendChild(t);
-var myObj;
+
  function Listausuarios(data)
  {
    if(data.users == null)
@@ -335,7 +323,7 @@ var myObj;
          r.appendChild(statusCell);
          r.appendChild(userName);
          t.appendChild(r);
-      }    
+      }
       
    }else
    {
@@ -383,7 +371,7 @@ var myObj;
  // Crea conexión con el usuario seleccionado.
  function action1(e) {
    CallToUsername(e.target.textContent);
-   }
+ }
 
 // Crea conexión con el usuario seleccionado.
 function CallToUsername(name)
@@ -394,7 +382,7 @@ function CallToUsername(name)
     if (callToUsername.length > 0) {
      
        connectedUser = callToUsername;
-         
+       console.log("Creando oferta"); 
        // create an offer 
        yourConn.createOffer(function (offer) { 
          
@@ -402,12 +390,12 @@ function CallToUsername(name)
              type: "offer", 
              offer: offer 
           }); 
-             
+         
+          console.log("Oferta enviada"); 
           yourConn.setLocalDescription(offer); 
 
           // Abrimos chat.
           openForm();
-
           
           var nombreChat = document.getElementById("nombrechat");
           // Cambiamos nombre del chat.
@@ -421,19 +409,19 @@ function CallToUsername(name)
 
 function openForm() {
    document.getElementById("myForm").style.display = "block";
-   }
+}
 
-   function openFormUsers() {
+ function openFormUsers() {
    document.getElementById("myFormUsers").style.display = "block";
-   }
+ }
 
-   function closeForm() {
+ function closeForm() {
    document.getElementById("myForm").style.display = "none";
-   }
+ }
 
-   function closeFormUsers() {
+ function closeFormUsers() {
    document.getElementById("myFormUsers").style.display = "none";
-   }
+ }
 
    /****************************************************Llamadas******************************************************** */
 
