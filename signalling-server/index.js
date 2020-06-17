@@ -1,3 +1,5 @@
+
+/********************************************** */
 const express = require("express");
 const WebSocket = require("ws");
 const http = require("http");
@@ -5,15 +7,12 @@ const http = require("http");
 const uuidv4 = require("uuid").v4;
 //const {v4: uuidv4 } = require("uuid");
 const app = express();
-
 const port = process.env.PORT || 9000;
-
 //initialize a http server
 const server = http.createServer(app);
-
 //initialize the WebSocket server instance
 const wss = new WebSocket.Server({ server });
-
+//all connected to the server users
 let users = {};
 
 const sendTo = (connection, message) => {
@@ -64,14 +63,19 @@ wss.on("connection", ws => {
             const loggedIn = Object.values(
                 users
             ).map(({ id, name: userName }) => ({ id, userName }));
+            // Guardamos conexión del usuario.
             users[name] = ws;
+            // Asignamos nombre.
             ws.name = name;
+            // Asignamos Id.
             ws.id = id;
+            // Enviamos al usuario respuesta.
             sendTo(ws, {
                 type: "login",
                 success: true,
                 users: loggedIn
             });
+            // Enviamos a todos los usuarios el aviso del nuevo conectado.
             sendToAll(users, "updateUsers", ws);
             }
             break;
@@ -127,6 +131,7 @@ wss.on("connection", ws => {
                 break;
 
                 case "leave":
+                console.log("Disconnecting from", data.name);
                 sendToAll(users, "leave", ws);
                 break;
                 
@@ -139,7 +144,8 @@ wss.on("connection", ws => {
                         break;
                     }
                     });
-                    
+      
+    // Evento que ocurre al un usuario desconectarse.
     ws.on("close", function() {
         delete users[ws.name];
         sendToAll(users, "leave", ws);
@@ -150,7 +156,7 @@ wss.on("connection", ws => {
     ws.send(
         JSON.stringify({
         type: "connect",
-        message: "Bienvenido, yo soy el servidor WebSocket"
+        message: "Bienvenido, está conectado al servidor WebSocket"
         })
     );
 });

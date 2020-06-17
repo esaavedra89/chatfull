@@ -1,9 +1,19 @@
+
 //our username 
 var name; 
 var connectedUser;
-  
+var yourConn;
+ // Put variables in global scope to make them available to the browser console.
+ const constraints = window.constraints = {
+   audio: false,
+   video: true,
+}; 
+//all connected to the server users
+let users = {};
+
+
+
 //connecting to our signaling server 
-//var conn = new WebSocket('ws://localhost:9090');
 var conn = new WebSocket('ws://localhost:9000');
   
 conn.onopen = function () { 
@@ -73,14 +83,14 @@ function send(message) {
 //****** 
 
 var loginPage = document.querySelector('#loginPage'); 
-var openChat = document.querySelector('#open-chat'); 
-var openListUsuarios = document.querySelector('#open-ListUsuarios'); 
-
 var usernameInput = document.querySelector('#usernameInput'); 
 var loginBtn = document.querySelector('#loginBtn'); 
 
-//var callPage = document.querySelector('#callPage'); 
-var callToUsernameInput = document.querySelector('#callToUsernameInput'); 
+var openChat = document.querySelector('#open-chat'); 
+var openListUsuarios = document.querySelector('#open-ListUsuarios'); 
+
+var callPage = document.querySelector('#callPage'); 
+// var callToUsernameInput = document.querySelector('#callToUsernameInput'); 
 var callBtn = document.querySelector('#callBtn'); 
 
 var hangUpBtn = document.querySelector('#hangUpBtn'); 
@@ -90,9 +100,16 @@ var sendMsgBtn = document.querySelector('#sendMsgBtn');
 // var chatArea = document.querySelector('#chatarea'); 
 var areaMensajes = document.querySelector('#areaMensajes'); 
 
+// Selectores de video.
+var localVideo = document.querySelector('#localVideo'); 
+var remoteVideo = document.querySelector('#remoteVideo');
+
 var yourConn; 
 var dataChannel;
-//callPage.style.display = "none"; 
+var stream;
+
+//hide call page 
+callPage.style.display = "none"; 
 
 // Login when the user clicks the button 
 loginBtn.addEventListener("click", function (event) { 
@@ -106,6 +123,8 @@ loginBtn.addEventListener("click", function (event) {
    } 
 	
 });
+
+
  
 function handleLogin(success) { 
 
@@ -113,13 +132,25 @@ function handleLogin(success) {
       alert("Ooops... intente con un diferente nombre de usuario"); 
    } else { 
       loginPage.style.display = "none"; 
-      //callPage.style.display = "block"; 
+      callPage.style.display = "block"; 
       openChat.style.display = "block";
       openListUsuarios.style.display = "block";
 		
       //********************** 
       //Starting a peer connection 
       //********************** 
+
+      /****************************Del video************************************ */
+      //getting local video stream 
+      navigator.webkitGetUserMedia(constraints, 
+         function (myStream) { 
+         stream = myStream; 
+			
+      //displaying local video stream on the page 
+      //localVideo.src = window.URL.createObjectURL(stream);
+      window.stream = stream; // make variable available to browser console
+      localVideo.srcObject = stream;
+      /**************************************************************** */
 
       //using Google public stun server 
       var configuration = { 
@@ -128,6 +159,17 @@ function handleLogin(success) {
         
         yourConn = new webkitRTCPeerConnection(configuration, {optional: [{RtpDataChannels: true}]});
         
+        /****************************Del video************************************ */
+        // setup stream listening 
+        yourConn.addStream(stream); 
+			
+        //when a remote user adds stream to the peer connection, we display it 
+        yourConn.onaddstream = function (e) { 
+           //remoteVideo.src = window.URL.createObjectURL(e.stream); 
+           remoteVideo.srcObject = e.stream;
+        };
+        /**************************************************************** */
+
         // Setup ice handling 
         yourConn.onicecandidate = function (event) { 
             if (event.candidate) { 
@@ -154,8 +196,11 @@ function handleLogin(success) {
         dataChannel.onclose = function () { 
             console.log("data channel está cerrado"); 
         };
-   } 
-};
+      }, function (error) { 
+         console.log(error); 
+      });
+   };
+}
 
 //initiating a call
 // callBtn.addEventListener("click", function () { 
@@ -372,4 +417,3 @@ function openForm() {
 
    /****************************************************Llamadas******************************************************** */
 
-   
