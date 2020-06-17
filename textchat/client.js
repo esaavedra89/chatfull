@@ -268,6 +268,9 @@ hangUpBtn.addEventListener("click", function () {
     connectedUser = null; 
     yourConn.close(); 
     yourConn.onicecandidate = null; 
+
+    remoteVideo.src = null; 
+    yourConn.onaddstream = null; 
  };
 
  //when user clicks the "send message" button 
@@ -308,15 +311,32 @@ var t = document.createElement('table');
 
 // Agregamos la tabla al div.
 document.getElementById('wrapper').appendChild(t);
-
+var myObj;
  function Listausuarios(data)
  {
-   var myObj;
-   
    if(data.users == null)
    {
-      // Individual.
-      var usuarioConectado = data.user;
+      if(myObj != null)
+      {
+         // Individual.
+         var usuarioConectado = data.user;
+         var s = usuarioConectado;
+         var r = document.createElement('tr');
+         r.dataset.personId = s.id;
+         r.id = s.userName.toLowerCase() + "-row";
+         var statusCell = document.createElement('td');
+         statusCell.textContent = 'Activo';
+         statusCell.classList.add('estado');
+         statusCell.dataset.personId = y;
+         var userName = document.createElement('td');
+         userName.textContent = s.userName;
+         userName.classList.add('userName');
+         userName.dataset.personId = s.id;
+         r.appendChild(statusCell);
+         r.appendChild(userName);
+         t.appendChild(r);
+      }    
+      
    }else
    {
       myObj = data.users;

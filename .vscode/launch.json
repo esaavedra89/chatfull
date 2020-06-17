@@ -8,7 +8,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "file:///F:/Proyectos/Chat-Prueba/index.html",
+            "url": "file:///F:/Proyectos/Chat-Prueba/textchat/index.html",
             "webRoot": "${workspaceFolder}"
         }
     ]
